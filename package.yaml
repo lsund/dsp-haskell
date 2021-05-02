@@ -1,0 +1,44 @@
+name:                dsp
+version:             0.1.0.0
+github:              "githubuser/dsp"
+license:             BSD3
+author:              "Author name here"
+maintainer:          "example@example.com"
+copyright:           "2021 Author name here"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+description:         Please see the README on GitHub at <https://github.com/githubuser/dsp#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- bytestring
+- process
+- io-streams
+
+library:
+  source-dirs: src
+
+executables:
+  dsp-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - dsp
+
+tests:
+  dsp-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - dsp
