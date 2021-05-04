@@ -17,7 +17,7 @@ pitchStandard :: Frequency
 pitchStandard = fsharp0
 
 bpm :: Beats
-bpm = 120.0
+bpm = 100.0
 
 beatDuration :: Seconds
 beatDuration = 60.0 / bpm
