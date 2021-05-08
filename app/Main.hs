@@ -14,6 +14,9 @@ import System.IO.Streams.File
 import Control.Concurrent
 import Control.Monad.IO.Class (liftIO)
 
+import Graphics.Rendering.Chart.Easy
+import Graphics.Rendering.Chart.Backend.Cairo
+
 import Types
 import Note (note, Note(..))
 import Constants (outputFilePath, sampleRate)
@@ -33,7 +36,7 @@ generator :: Int -> [Pulse] -> Generator ByteString ()
 generator i [] = Streams.yield $ toPCM 0.0
 generator i (x : xs) = do
   Streams.yield $ toPCM x
-  if i `mod` round sampleRate == 0
+  if i `mod` round (sampleRate * 2) == 0
      then do
        liftIO $ threadDelay 700000
        liftIO $ print $ "written" ++ show i
@@ -41,10 +44,19 @@ generator i (x : xs) = do
   else
     generator (succ i) xs
 
+doPlot = toFile def "example1_big.png" $ do
+    layout_title .= "Amplitude Modulation"
+    setColors [opaque blue]
+    plot (line "am" [signal [0,1..sampleRate * 2]])
+    -- plot (points "am points" (signal [0,7..400]))
 main :: IO ()
 main = do
+  doPlot
   tid <- forkIO play
-  is <- Streams.fromGenerator $ generator (round sampleRate) (concat (repeat (note FSharp)))
+  is <- Streams.fromGenerator $ generator (round sampleRate) (concat (repeat (note AMajor)))
   putStrLn $ "Writing to" ++ outputFilePath
   withFileAsOutput  outputFilePath $ Streams.connect is
+
+signal :: [Pulse] -> [(Pulse, Pulse)]
+signal xs = zip xs (note AMajor)
 

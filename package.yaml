@@ -17,6 +17,10 @@ dependencies:
 - bytestring
 - process
 - io-streams
+- gtk2hs-buildtools
+- cairo
+- Chart
+- Chart-cairo
 
 library:
   source-dirs: src

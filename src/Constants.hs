@@ -3,7 +3,7 @@ module Constants where
 import Types
 
 volume :: Float
-volume = 0.4
+volume = 1.0
 
 -- samples / second
 sampleRate :: Samples
@@ -17,7 +17,7 @@ pitchStandard :: Frequency
 pitchStandard = fsharp0
 
 bpm :: Beats
-bpm = 100.0
+bpm = 20.0
 
 beatDuration :: Seconds
 beatDuration = 60.0 / bpm

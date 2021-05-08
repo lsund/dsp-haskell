@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: df24dcd5883ea23675b93c86c683c7d00cf21d55dee095ce496aacbc1bc70561
+-- hash: e42a1c85dcd5d2bf2e632dae3694a9f2514fed9f237e9e86483f3fc5da4a253e
 
 name:           dsp
 version:        0.1.0.0
@@ -36,8 +36,12 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      Chart
+    , Chart-cairo
+    , base >=4.7 && <5
     , bytestring
+    , cairo
+    , gtk2hs-buildtools
     , io-streams
     , process
   default-language: Haskell2010
@@ -50,9 +54,13 @@ executable dsp-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      Chart
+    , Chart-cairo
+    , base >=4.7 && <5
     , bytestring
+    , cairo
     , dsp
+    , gtk2hs-buildtools
     , io-streams
     , process
   default-language: Haskell2010
@@ -66,9 +74,13 @@ test-suite dsp-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      Chart
+    , Chart-cairo
+    , base >=4.7 && <5
     , bytestring
+    , cairo
     , dsp
+    , gtk2hs-buildtools
     , io-streams
     , process
   default-language: Haskell2010
