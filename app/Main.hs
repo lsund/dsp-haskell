@@ -2,13 +2,14 @@
 
 module Main where
 
+import System.Directory (createDirectoryIfMissing)
 import Prelude hiding (writeFile)
-import Data.ByteString.Lazy (writeFile, toStrict)
+import Data.ByteString.Lazy (toStrict)
 import Data.ByteString (ByteString)
 import Data.ByteString.Builder (toLazyByteString, floatLE)
 import System.Process (runCommand)
 import Text.Printf (printf)
-import System.IO.Streams (InputStream, Generator)
+import System.IO.Streams (Generator)
 import qualified System.IO.Streams as Streams
 import System.IO.Streams.File
 import Control.Concurrent
@@ -44,19 +45,19 @@ generator i (x : xs) = do
   else
     generator (succ i) xs
 
-doPlot = toFile def "example1_big.png" $ do
-    layout_title .= "Amplitude Modulation"
+doPlot :: [Pulse] -> IO ()
+doPlot note = toFile def "./data/plot.png" $ do
+    layout_title .= "Note"
     setColors [opaque blue]
-    plot (line "am" [signal [0,1..sampleRate * 2]])
-    -- plot (points "am points" (signal [0,7..400]))
+    plot (line "am" [zip [0,1..sampleRate] note])
+
 main :: IO ()
 main = do
-  doPlot
+  let theNote = note FSharp
+  createDirectoryIfMissing True "data"
+  doPlot theNote
   tid <- forkIO play
-  is <- Streams.fromGenerator $ generator (round sampleRate) (concat (repeat (note AMajor)))
+  is <- Streams.fromGenerator $ generator (round sampleRate) (concat (repeat theNote))
   putStrLn $ "Writing to" ++ outputFilePath
   withFileAsOutput  outputFilePath $ Streams.connect is
-
-signal :: [Pulse] -> [(Pulse, Pulse)]
-signal xs = zip xs (note AMajor)
 

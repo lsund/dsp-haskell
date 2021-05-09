@@ -1,7 +1,6 @@
 module Note where
 
-import           Lib       (frequency, pulses)
-import           Types
+import           Lib       (pulses)
 
 data Note = AMajor
           | ASharp
@@ -15,6 +14,7 @@ data Note = AMajor
           | FSharp
           | GMajor
           | GSharp
+          deriving (Show)
 
 note AMajor = pulses 0 1
 note ASharp = pulses 1 1

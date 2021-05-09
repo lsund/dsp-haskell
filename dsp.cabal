@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e42a1c85dcd5d2bf2e632dae3694a9f2514fed9f237e9e86483f3fc5da4a253e
+-- hash: d55fedf6223df7696dcc5112d0cd6369a15e0a0b6b2acd09efb896c85c6ba2dd
 
 name:           dsp
 version:        0.1.0.0
@@ -41,6 +41,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , cairo
+    , directory
     , gtk2hs-buildtools
     , io-streams
     , process
@@ -59,6 +60,7 @@ executable dsp-exe
     , base >=4.7 && <5
     , bytestring
     , cairo
+    , directory
     , dsp
     , gtk2hs-buildtools
     , io-streams
@@ -79,6 +81,7 @@ test-suite dsp-test
     , base >=4.7 && <5
     , bytestring
     , cairo
+    , directory
     , dsp
     , gtk2hs-buildtools
     , io-streams

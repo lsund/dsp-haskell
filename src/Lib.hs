@@ -1,69 +1,82 @@
 module Lib where
 
-import           Constants (beatDuration, pitchStandard, sampleRate, volume)
+import           Constants (pitchStandard, sampleRate, volume)
 import           Types
-import Data.List (zipWith4)
 
-data Envelope = Envelope { _attack :: [Pulse], _decay :: [Pulse], _sustain :: [Pulse], _release :: [Pulse] }
+data Envelope
+  = Envelope
+      { _attack  :: Sample -> Pulse
+      , _decay   :: Sample -> Pulse
+      , _sustain :: Sample -> Pulse
+      , _release :: Sample -> Pulse
+      }
 
--- TODO so far only linear functions. Try square functions
+e = 2.71828
 
--- TODO overlapping signals
+-- https://www.desmos.com/calculator
 
--- 100 ms = 4800 samples
+-- TODO smooth decay and release using decreasing as well
 
 -- 0 <= stretch <= 1
 stretch = 0.5
 
-attackDegree = 0.0015
+attackDegree = 0.0025
 attackCeil = 1.0
 attackHold = 1200
 
-decayDegree = 0.0008
+decayDegree = 0.0002
 decayFloor = 0.7
 decayHold = 6000
 
 releaseDegree = 0.00006
 releaseFloor = 0.0
 
-freqDegree = 0.0000000017
-freqFloor = 1.0
+-- Quadratic decreasing function between max and min. If min <= x <= max then
+-- return 0 <= y <= 1 else return x
+decreasing max min x | x < min = 0.0
+decreasing max min x = go (max - x)
+  where
+    go x = ((1 / (max - min)) * x - sqrt 1) ** 2
 
+attackFn :: Sample -> Float
 attackFn sample = min attackCeil (sample * sample * attackDegree * attackDegree)
 
+decayFn :: Sample -> Float
 decayFn sample | sample <= attackHold = 1.0
 decayFn sample | sample > attackHold && sample <= decayHold = max decayFloor (1 - relX * decayDegree)
   where relX = sample - attackHold
 decayFn sample = decayFloor
 
+releaseFn :: Sample -> Float
 releaseFn sample | sample <= decayHold = 1
 releaseFn sample = max releaseFloor (1 - relX * relX * releaseDegree * releaseDegree)
   where relX = sample - decayHold
 
-envelope :: Int -> Envelope
-envelope length =
-  Envelope
-    (take length $ map attackFn [1,2 ..])
-    (repeat 1.0)
-    (take length $ map decayFn [1,2 ..])
-    (take length $ map releaseFn [1,2 ..])
+envelope :: Envelope
+envelope =
+  Envelope attackFn decayFn (const 1.0) releaseFn
+  where samples = [1..];
 
 frequency :: Offset -> Frequency
 frequency n = pitchStandard * (2 ** (1.0 / 12.0)) ** n
 
-point hz sample = sin (sample * step)
+amplitude :: Frequency -> Sample -> Float
+amplitude hz sample = sin (sample * step)
   where
     w = 2 * pi * hz
-    t = sample * freqDegree
-    step = w * t + (1 / sampleRate) * ((t ** 2) / 2)
-
+    t = (1 / sampleRate) * (1 + (0.12 * decreasing sampleRate (sampleRate - 5000) sample))
+    step = w * t
 
 signal :: Frequency -> [Pulse]
-signal hz = map (* volume) $ zipWith4 (\i j k l -> i * j * k * l) wave attack decay release
+signal hz =
+  zipWith (curry ((*volume) .  (\(sample, reverseSample) -> amplitude hz reverseSample * attack sample * decay sample * 1.0 * release sample)))
+    samples
+    reverseSamples
   where
-    Envelope attack _ decay release = envelope (length wave)
-    samples = sampleRate  * stretch
-    wave = map (point hz) [samples, pred samples.. 0]
+    Envelope attack decay sustain release = envelope
+    nSamples = sampleRate
+    samples = [1.0..sampleRate]
+    reverseSamples = [nSamples, pred nSamples.. 0]
 
 pulses :: Offset -> Beats -> [Pulse]
 pulses n beats = signal (frequency n)
