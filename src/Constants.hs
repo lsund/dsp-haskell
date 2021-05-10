@@ -23,5 +23,7 @@ beatDuration :: Seconds
 beatDuration = 60.0 / bpm
 
 outputFilePath :: FilePath
-outputFilePath = "data/output2.bin"
--- outputFilePath = "data/output.bin"
+outputFilePath = "./data/output2.bin"
+
+plotFilePath :: FilePath
+plotFilePath = "./data/plot.png"

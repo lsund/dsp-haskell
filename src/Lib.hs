@@ -53,9 +53,7 @@ releaseFn sample = max releaseFloor (1 - relX * relX * releaseDegree * releaseDe
   where relX = sample - decayHold
 
 envelope :: Envelope
-envelope =
-  Envelope attackFn decayFn (const 1.0) releaseFn
-  where samples = [1..];
+envelope = Envelope attackFn decayFn (const 1.0) releaseFn
 
 frequency :: Offset -> Frequency
 frequency n = pitchStandard * (2 ** (1.0 / 12.0)) ** n
@@ -73,7 +71,7 @@ signal hz =
     samples
     reverseSamples
   where
-    Envelope attack decay sustain release = envelope
+    Envelope attack decay _ release = envelope
     nSamples = sampleRate
     samples = [1.0..sampleRate]
     reverseSamples = [nSamples, pred nSamples.. 0]
