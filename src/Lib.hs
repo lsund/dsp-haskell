@@ -17,46 +17,46 @@ e = 2.71828
 
 -- TODO smooth decay and release using decreasing as well
 
-attackDegree = 0.0025
-attackCeil = 1.0
-attackHold = 1200
+-- Magic numbers
+kFreq = 0.12
 
-decayDegree = 0.0002
-decayFloor = 0.7
-decayHold = 6000
+-- Represents a downward slope function, 1.0 >= y >= `_minY` and `_minX` <= x <= `_maxX`.
+-- `_power = {2,4,6...}` determines the steepness of the slope.
+data SlopeParams
+  = SlopeParams
+      { _minX  :: Float
+      , _maxX  :: Float
+      , _minY  :: Float
+      , _power :: Float
+      }
 
-releaseDegree = 0.00006
-releaseFloor = 0.0
+downwardSlope :: SlopeParams -> Float -> Float
+downwardSlope (SlopeParams minX maxX minY power) x | x < minX = 1.0
+downwardSlope (SlopeParams minX maxX minY power) x | x > maxX = minY
+downwardSlope (SlopeParams minX maxX minY power) x = ((c / maxX' * x') - c) ** power + minY
+  where
+    x' = x - minX
+    maxX' = maxX - minX
+    c = (1 - minY) ** (1 / power)
 
-decreasing :: Float -> Float -> Float
-decreasing k x = ((1 / k * x) - sqrt 1) ** 2
-
--- Represents a decreasing slope for decreasing samples.
---
--- If min <= x <= max then return 0 <= y <= 1 else return 0
---
--- For max, return 1, for min return 0
--- between, return a number representing a downward slope
-slopeBetween :: Float -> Float -> Sample -> Float
-slopeBetween max min x | x < min = 0.0
-slopeBetween max min x = decreasing (max - min) (max - x)
+reverseDownwardSlope :: SlopeParams -> Float -> Float
+reverseDownwardSlope params@(SlopeParams _ maxX _ _) sample =
+  downwardSlope params (max (maxX - sample) 0)
 
 attackFn :: Sample -> Float
-attackFn sample = min attackCeil (sample * sample * attackDegree * attackDegree)
+attackFn = reverseDownwardSlope (SlopeParams 0 400 0.0 2)
 
 decayFn :: Sample -> Float
-decayFn sample | sample <= attackHold = 1.0
-decayFn sample | sample > attackHold && sample <= decayHold = max decayFloor (1 - relX * decayDegree)
-  where relX = sample - attackHold
-decayFn sample = decayFloor
+decayFn = downwardSlope (SlopeParams 1200 6000 0.7 2)
+
+sustainFn :: Sample -> Float
+sustainFn = const 1.0
 
 releaseFn :: Sample -> Float
-releaseFn sample | sample <= decayHold = 1
-releaseFn sample = max releaseFloor (1 - relX * relX * releaseDegree * releaseDegree)
-  where relX = sample - decayHold
+releaseFn = downwardSlope (SlopeParams 8000 20000 0.0 2)
 
 envelope :: Envelope
-envelope = Envelope attackFn decayFn (const 1.0) releaseFn
+envelope = Envelope attackFn decayFn sustainFn releaseFn
 
 frequency :: Offset -> Frequency
 frequency n = pitchStandard * (2 ** (1.0 / 12.0)) ** n
@@ -67,14 +67,22 @@ amplitude hz sample = sin (reverseSample * step)
     nSamples = sampleRate
     reverseSample = nSamples - sample
     w = 2 * pi * hz
-    t = (1 / sampleRate) * (1 + (0.12 * slopeBetween sampleRate (sampleRate - 5000) reverseSample))
+    t = (1 / sampleRate) * (1 + (kFreq * downwardSlope (SlopeParams 0 8000 0.0 4) sample))
     step = w * t
 
 signal :: Frequency -> [Pulse]
 signal hz =
-  map (\sample -> volume * amplitude hz sample * attack sample * decay sample * 1.0 * release sample) samples
+  map
+    (\sample ->
+      volume
+      * amplitude hz sample
+      * attack sample
+      * decay sample
+      * sustain sample
+      * release sample)
+     samples
   where
-    Envelope attack decay _ release = envelope
+    Envelope attack decay sustain release = envelope
     samples = [1.0..sampleRate]
 
 pulses :: Offset -> Beats -> [Pulse]
