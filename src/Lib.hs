@@ -11,49 +11,55 @@ data Envelope
       , _release :: Sample -> Pulse
       }
 
-e = 2.71828
-
--- https://www.desmos.com/calculator
-
--- TODO smooth decay and release using decreasing as well
-
--- Magic numbers
-kFreq = 0.12
-
--- Represents a downward slope function, 1.0 >= y >= `_minY` and `_minX` <= x <= `_maxX`.
--- `_power = {2,4,6...}` determines the steepness of the slope.
 data SlopeParams
   = SlopeParams
       { _minX  :: Float
       , _maxX  :: Float
-      , _minY  :: Float
+      , _limitY  :: Float
       , _power :: Float
       }
 
-downwardSlope :: SlopeParams -> Float -> Float
-downwardSlope (SlopeParams minX maxX minY power) x | x < minX = 1.0
-downwardSlope (SlopeParams minX maxX minY power) x | x > maxX = minY
-downwardSlope (SlopeParams minX maxX minY power) x = ((c / maxX' * x') - c) ** power + minY
-  where
-    x' = x - minX
-    maxX' = maxX - minX
-    c = (1 - minY) ** (1 / power)
+-- Frequency decrease magic number. Frequency of note starts at 200% and quickly decreases
+-- to 100% to simulate the initial hit. Increasing `kFreq` increases the rate
+-- of decrease.
+kFreq = 0.12
 
-reverseDownwardSlope :: SlopeParams -> Float -> Float
-reverseDownwardSlope params@(SlopeParams _ maxX _ _) sample =
-  downwardSlope params (max (maxX - sample) 0)
+-- https://www.desmos.com/calculator
+
+-- Represents a downward slope , or a left part of a function similar to
+-- x^2.
+-- More specifically, the section that spans 1.0 >= y >= `minY` and `minX` <= x <= `maxX`.
+-- `power \in {2,4,6...}` determines the initial steepness of the slope.
+downSlope :: SlopeParams -> Float -> Float
+downSlope (SlopeParams minX maxX minY power) x | x < minX = 1.0
+downSlope (SlopeParams minX maxX minY power) x | x > maxX = minY
+downSlope (SlopeParams minX maxX minY power) x = ((c / maxX' * x') - c) ** power + minY
+  where
+    x'    = x - minX
+    maxX' = maxX - minX
+    c     = (1 - minY) ** (1 / power)
+
+-- See downward slope, but for -x^2
+upSlope :: SlopeParams -> Float -> Float
+upSlope (SlopeParams minX maxX maxY power) x | x < minX = 0.0
+upSlope (SlopeParams minX maxX maxY power) x | x > maxX = maxY
+upSlope (SlopeParams minX maxX maxY power) x = -((c / maxX' * x') - c) ** power + maxY
+  where
+    x'    = x - minX
+    maxX' = maxX - minX
+    c     = maxY ** (1 / power)
 
 attackFn :: Sample -> Float
-attackFn = reverseDownwardSlope (SlopeParams 0 400 0.0 2)
+attackFn = upSlope (SlopeParams 0 800 1.0 2)
 
 decayFn :: Sample -> Float
-decayFn = downwardSlope (SlopeParams 1200 6000 0.7 2)
+decayFn = downSlope (SlopeParams 1200 6000 0.7 2)
 
 sustainFn :: Sample -> Float
 sustainFn = const 1.0
 
 releaseFn :: Sample -> Float
-releaseFn = downwardSlope (SlopeParams 8000 20000 0.0 2)
+releaseFn = downSlope (SlopeParams 8000 20000 0.0 2)
 
 envelope :: Envelope
 envelope = Envelope attackFn decayFn sustainFn releaseFn
@@ -67,7 +73,7 @@ amplitude hz sample = sin (reverseSample * step)
     nSamples = sampleRate
     reverseSample = nSamples - sample
     w = 2 * pi * hz
-    t = (1 / sampleRate) * (1 + (kFreq * downwardSlope (SlopeParams 0 8000 0.0 4) sample))
+    t = (1 / sampleRate) * (1 + (kFreq * downSlope (SlopeParams 0 8000 0.0 4) sample))
     step = w * t
 
 signal :: Frequency -> [Pulse]
