@@ -33,8 +33,8 @@ play = do
   _ <- runCommand $ printf "ffplay -loop 0 -autoexit -showmode 0 -f f64le -ar %f %s" sampleRate outputFilePath
   return ()
 
-renderPLot :: Note -> [Pulse] -> IO ()
-renderPLot note pulses = toFile def plotFilePath $ do
+renderPlot :: Note -> [Pulse] -> IO ()
+renderPlot note pulses = toFile def plotFilePath $ do
     layout_title .= show note
     setColors [opaque blue]
     plot (line (show note) [zip [0,1..sampleRate] pulses])
@@ -43,7 +43,7 @@ main :: IO ()
 main = do
   let pulses = toPulses FSharp (-4)
   createDirectoryIfMissing True "data"
-  renderPLot FSharp pulses
+  renderPlot FSharp pulses
   writeFile outputFilePath $ toLazyByteString $ foldMap doubleLE pulses
   tid <- forkIO play
   return ()
