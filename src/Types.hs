@@ -4,6 +4,6 @@ type TimeStamp = Double
 type Pulse     = Double
 type Seconds   = Double
 type Frequency = Double
-type Offset    = Double
+type HalfNotes = Double
 type Beats     = Double
 

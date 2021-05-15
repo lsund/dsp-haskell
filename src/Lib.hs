@@ -64,7 +64,8 @@ releaseFn = downSlope (SlopeParams 8000 20000 0.0 2)
 envelope :: Envelope
 envelope = Envelope attackFn decayFn sustainFn releaseFn
 
-frequency :: Offset -> Frequency
+-- https://pages.mtu.edu/~suits/NoteFreqCalcs.html
+frequency :: HalfNotes -> Frequency
 frequency n = pitchStandard * (2 ** (1.0 / 12.0)) ** n
 
 amplitude :: Frequency -> TimeStamp -> Double
@@ -91,6 +92,6 @@ signal hz =
     Envelope attack decay sustain release = envelope
     timestamps = [1.0..sampleRate]
 
-pulses :: Offset -> Beats -> [Pulse]
+pulses :: HalfNotes -> Beats -> [Pulse]
 pulses n beats = signal (frequency n)
 

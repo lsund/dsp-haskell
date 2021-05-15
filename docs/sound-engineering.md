@@ -80,11 +80,17 @@ timestamps = [1.0..sampleRate]
 
 ```
 
-The `type` keyword is a type alias. Here, we alias the primitive haskell type
-Double, (probably) representing a 64 bit floating port number. Why not use
-integers for discrete numbers? As we will see, it will not make a difference
-for the intents and purposes of this post, and it will save us the (sometimes
-verbose) converting between different number types.
+* The `type` keyword is a type alias. Here, we alias the primitive haskell type
+  Double, (probably) representing a 64 bit floating port number.
 
+* Why not use integers for discrete values? As we will see, it will not make a
+  difference for the intents and purposes of this post, and it will save us the
+  (sometimes verbose) converting between different number types.
+
+* Why use double instead of float when representing large lists of numbers?
+  On a 64-bit machine, chances are that [floats will use
+  64](https://wiki.haskell.org/Performance/Floating_point) bits anyways, so
+  single precision will probably not save me any space. Again, for our intents
+  and purposes, performance comes second hand anyways.
 
 

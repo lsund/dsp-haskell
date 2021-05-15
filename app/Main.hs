@@ -41,7 +41,7 @@ doPlot note = toFile def plotFilePath $ do
 
 main :: IO ()
 main = do
-  let theNote = note FSharp
+  let theNote = note FSharp 1
   createDirectoryIfMissing True "data"
   doPlot theNote
   tid <- forkIO play
