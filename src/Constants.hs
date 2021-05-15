@@ -9,10 +9,11 @@ volume = 1.0
 sampleRate :: Double
 sampleRate = 48000.0
 
-c0 = 16.35
+a4 :: Frequency
+a4 = 440.00
 
 pitchStandard :: Frequency
-pitchStandard = c0
+pitchStandard = a4
 
 bpm :: Beats
 bpm = 20.0

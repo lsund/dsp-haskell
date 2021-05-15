@@ -59,7 +59,7 @@ sustainFn :: TimeStamp -> Double
 sustainFn = const 1.0
 
 releaseFn :: TimeStamp -> Double
-releaseFn = downSlope (SlopeParams 8000 20000 0.0 2)
+releaseFn = downSlope (SlopeParams 8000 21000 0.0 2)
 
 envelope :: Envelope
 envelope = Envelope attackFn decayFn sustainFn releaseFn

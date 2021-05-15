@@ -19,7 +19,7 @@ import           Graphics.Rendering.Chart.Easy
 import           Constants                              (outputFilePath,
                                                          plotFilePath,
                                                          sampleRate)
-import           Note                                   (Note (..), note)
+import           Note                                   (Note (..), toPulses)
 import           Types
 
 -- The options to ffplay are as follows
@@ -30,23 +30,21 @@ import           Types
 -- -f f32le    : format 32-bit floats little endian
 play :: IO ()
 play = do
-  _ <- runCommand $ printf "ffplay -loop 0 -autoexit -showmode 0 -f f32le -ar %f %s" sampleRate outputFilePath
+  _ <- runCommand $ printf "ffplay -loop 0 -autoexit -showmode 0 -f f64le -ar %f %s" sampleRate outputFilePath
   return ()
 
-doPlot :: [Pulse] -> IO ()
-doPlot note = toFile def plotFilePath $ do
-    layout_title .= "Note"
+renderPLot :: Note -> [Pulse] -> IO ()
+renderPLot note pulses = toFile def plotFilePath $ do
+    layout_title .= show note
     setColors [opaque blue]
-    plot (line "am" [zip [0,1..sampleRate] note])
+    plot (line (show note) [zip [0,1..sampleRate] pulses])
 
 main :: IO ()
 main = do
-  let theNote = note FSharp 1
+  let pulses = toPulses FSharp (-4)
   createDirectoryIfMissing True "data"
-  doPlot theNote
+  renderPLot FSharp pulses
+  writeFile outputFilePath $ toLazyByteString $ foldMap doubleLE pulses
   tid <- forkIO play
-  putStrLn $ "Writing to" ++ outputFilePath
-  writeFile outputFilePath $ toLazyByteString $ foldMap doubleLE theNote
-  -- is <- Streams.fromGenerator $ generator (round sampleRate) (concat (repeat theNote))
-  -- withFileAsOutput  outputFilePath $ Streams.connect is
+  return ()
 
