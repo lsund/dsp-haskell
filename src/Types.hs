@@ -1,10 +1,9 @@
 module Types where
 
-type Sample    = Float
-type Pulse     = Float
-type Seconds   = Float
-type Samples   = Float
-type Frequency = Float
-type Offset    = Float
-type Beats     = Float
+type TimeStamp = Double
+type Pulse     = Double
+type Seconds   = Double
+type Frequency = Double
+type Offset    = Double
+type Beats     = Double
 

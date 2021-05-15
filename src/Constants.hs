@@ -2,11 +2,11 @@ module Constants where
 
 import Types
 
-volume :: Float
+volume :: Double
 volume = 1.0
 
 -- samples / second
-sampleRate :: Float
+sampleRate :: Double
 sampleRate = 48000.0
 
 fsharp0 = 23.12

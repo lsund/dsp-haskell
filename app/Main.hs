@@ -3,7 +3,7 @@
 module Main where
 
 import           Control.Concurrent
-import           Data.ByteString.Builder                (floatLE,
+import           Data.ByteString.Builder                (doubleLE,
                                                          toLazyByteString)
 import           Data.Foldable
 
@@ -46,7 +46,7 @@ main = do
   doPlot theNote
   tid <- forkIO play
   putStrLn $ "Writing to" ++ outputFilePath
-  writeFile outputFilePath $ toLazyByteString $ fold $ map floatLE theNote
+  writeFile outputFilePath $ toLazyByteString $ foldMap doubleLE theNote
   -- is <- Streams.fromGenerator $ generator (round sampleRate) (concat (repeat theNote))
   -- withFileAsOutput  outputFilePath $ Streams.connect is
 
